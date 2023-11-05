@@ -6,7 +6,5 @@ export function generateRandomPlotId(length=16) {
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
-  console.log("called!");
-  console.log(result);
   return result;
 }

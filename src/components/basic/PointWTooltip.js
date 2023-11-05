@@ -20,8 +20,6 @@ const PointWTooltip = ({ data, xScale, yScale, colorScale, debug=false }) => {
       }
     });
     if (closestPoint) {
-      console.log("closest point:");
-      console.log(closestPoint[0].toFixed(2) + ", " + closestPoint[1].toFixed(2));
       setTooltip({
         content: `(${closestPoint[0].toFixed(2)}, ${closestPoint[1].toFixed(2)})`,
         x: xScale(closestPoint[0]) + 5, // 5 units to the right of the point

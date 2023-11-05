@@ -40,11 +40,12 @@ setMaxTickWidth, afterDrawn, ...props }) => {
         let offsetTop = 0;
         if (ticks._groups.length > 0) {
           for (let i = 0; i < ticks._groups[0].length; i++) {
-            const tickWidth = ticks._groups[0][i].getBBox().width;
+            const dim = ticks._groups[0][i].getBBox();
+            const tickWidth = dim.width;
             if (tickWidth > maxTickWidth) {
               maxTickWidth = tickWidth;
             }
-            const tickTop = ticks._groups[0][i].getBBox().y;
+            const tickTop = dim.y;
             if (tickTop < offsetTop) {
               offsetTop = tickTop;
             }
@@ -67,26 +68,32 @@ setMaxTickWidth, afterDrawn, ...props }) => {
   const [labelPos, setLabelPos] = useState();
 
   useEffect(() => {
-    if (scale) {
-      setLabelPos(() =>   {
-        switch (type) {
-          case "Top":
-            return { x: Math.max(...scale.range()) / 2, y: -25, textAnchor: "middle" };
-          case "Right":
-            return { x: 20, y: 0 };
-          case "Bottom":
-            let yOffset = 25;
-            yOffset += maxTickWidth * Math.abs(Math.sin(textRotate * (Math.PI / 180)));
-            return { x: Math.max(...scale.range()) / 2, y: yOffset, textAnchor: "middle" };
-          case "Left":
-            return { x: -Math.max(...scale.range()) / 2, y: -maxTickWidth - 20,
-              transform: "rotate(-90)", textAnchor: "middle",
-              dominantBaseline: "middle"};
-          default:
-            console.error('Axis type must be either "Top", "Bottom", "Left", or "Right"');
-        }
-      });
+    if (!scale) return;
+    let newPos = { x: 0, y: 0, textAnchor: 'middle' };
+    switch (type) {
+      case 'Top':
+        newPos = { x: Math.max(...scale.range()) / 2, y: -25 };
+        break;
+      case 'Right':
+        newPos = { x: 25, y: 0, textAnchor: 'start' };
+        break;
+      case 'Bottom':
+        let yOffset = 25 + maxTickWidth * Math.abs(Math.sin(textRotate * (Math.PI / 180)));
+        newPos = { x: Math.max(...scale.range()) / 2, y: yOffset };
+        break;
+      case 'Left':
+        newPos = {
+          x: -25 - maxTickWidth,
+          y: Math.max(...scale.range()) / 2,
+          transform: 'rotate(-90)',
+          dominantBaseline: 'middle',
+        };
+        break;
+      default:
+        console.error('Axis type must be either "Top", "Bottom", "Left", or "Right"');
+        return;
     }
+    setLabelPos(newPos);
   }, [maxTickWidth, scale, textRotate, type]);
 
   return (

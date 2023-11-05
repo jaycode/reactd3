@@ -115,11 +115,12 @@ export default function Axes(
           ...config, // This overwrites the default configurations
         };
       }
+      // TODO: top and bottom
       return config;
     });
 
     setInnerAxisConfigs(finalAxisConfigs);
-  }, [titleTextAreaHeight, lAxisOffsetTop, lAxisMaxTickWidth]);
+  }, [titleTextAreaHeight, lAxisOffsetTop, lAxisMaxTickWidth, xScale, yScale]);
   // Determine how to render the Axis components
   const renderAxes = () => {
     return innerAxisConfigs.map((config, index) => (
