@@ -6,30 +6,17 @@ export default function RD3({ children, data }) {
   // Create a state object for managing signals
   const [signals, setSignals] = useState({});
 
-  // Expose a function to add a new signal
-  const addSignal = (key, initialValue) => {
+  // Use this if you need to update only a single signal.
+  const setSignal = (key, updater) => {
     setSignals((prevSignals) => {
-      if (prevSignals[key] === undefined) {
-        return { ...prevSignals, [key]: initialValue };
-      }
-      return prevSignals;
-    });
-  };
-
-  // Expose a function to update a specific signal
-  const updateSignal = (key, updater) => {
-    setSignals((prevSignals) => {
-      if (prevSignals[key] !== undefined) {
-        const newValue =
-          typeof updater === 'function' ? updater(prevSignals[key]) : updater;
-        return { ...prevSignals, [key]: newValue };
-      }
-      return prevSignals;
+      const newValue =
+        typeof updater === 'function' ? updater(prevSignals[key]) : updater;
+      return { ...prevSignals, [key]: newValue };
     });
   };
 
   return (
-    <RD3Context.Provider value={{ signals, addSignal, updateSignal }}>
+    <RD3Context.Provider value={{ signals, setSignals, setSignal }}>
       {children}
     </RD3Context.Provider>
   );

@@ -49,10 +49,9 @@ function App() {
 
   return (
     <div>
-      <svg width={width+50} height={height+50}>
+      <svg width={width} height={height}>
         <RD3>
           <Scatterplot
-            plotId="scatterplot1"
             data={data}
             xVar="0"
             yVar="1"
@@ -76,10 +75,37 @@ function App() {
           </Scatterplot>
         </RD3>
       </svg>
-      <svg width={width+200} height={height+50}>
+      <svg width={width+100} height={height}>
         <RD3>
           <Scatterplot
-            plotId="scatterplot2"
+            plotId="sp2"
+            data={data}
+            xVar="0"
+            yVar="1"
+            zVar="2"
+            x="0" y="0"
+            width={width}
+            height={height}
+            title="+ Tooltip and Legend"
+            Grid={({gridProps}) => (<Grid2D {...gridProps} />)}
+          >
+          {
+            ({ xScale, yScale, colorScale }) => (
+              <PointWTooltip data={data} xScale={xScale} yScale={yScale} colorScale={colorScale} />
+            )
+          }
+          </Scatterplot>
+          <Legend
+            forPlotId="sp2"
+            x={width + 20}
+            y="20"
+          />
+        </RD3>
+      </svg>
+      <svg width={width+100} height={height}>
+        <RD3>
+          <Scatterplot
+            plotId="sp3"
             data={data1}
             xVar="0"
             yVar="1"
@@ -87,7 +113,7 @@ function App() {
             x="0" y="0"
             width={width}
             height={height}
-            title="Scatterplot + Grid"
+            title="Dynamic Updates"
             Grid={({gridProps}) => (<Grid2D {...gridProps} xNTicks="5" />)}
           >
             {
@@ -103,37 +129,13 @@ function App() {
             }
           </Scatterplot>
           <Legend
-            plotId="scatterplot3"
-            x={width + 60}
+            forPlotId="sp3"
+            x={width + 20}
+            y="20"
           />
         </RD3>
       </svg>
-      <svg width={width+400} height={height+50}>
-        <RD3>
-          <Scatterplot
-            plotId="scatterplot3"
-            data={data}
-            xVar="0"
-            yVar="1"
-            zVar="2"
-            x="0" y="0"
-            width={width}
-            height={height}
-            title="Scatterplot + Grid + Legend"
-            Grid={({gridProps}) => (<Grid2D {...gridProps} />)}
-          >
-          {
-            ({ xScale, yScale, colorScale }) => (
-              <PointWTooltip data={data} xScale={xScale} yScale={yScale} colorScale={colorScale} />
-            )
-          }
-          </Scatterplot>
-          <Legend
-            plotId="scatterplot3"
-            x={width + 60}
-          />
-        </RD3>
-      </svg>
+
     </div>
   );
 }

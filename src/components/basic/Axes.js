@@ -4,10 +4,10 @@
 // - Wrap title when too long
 // - Additional Axis configurations
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import Axis from './Axis';
 import styled from 'styled-components';
-import { signal, effect } from '@preact/signals-react';
+import { RD3Context } from '../RD3';
 import { generateRandomPlotId } from './helpers';
 
 const TitleText = styled.text`
@@ -18,45 +18,34 @@ const TitleText = styled.text`
   font-weight: bold;
 `;
 
-export const lAxisRefCurrent = signal();
-export const titleTextAreaHeight = signal();
-export const titleTextWidth = signal();
-export const lAxisMaxTickWidth = signal();
-export const lAxisOffsetTop = signal();
-
-// {plotId: {
-//   title: {width, height}
-//   laxis: {maxTickWidth, offsetTop, width, height}
-//   raxis: {maxTickWidth, offsetTop, width, height}
-//   taxis: {maxTickWidth, offsetTop, width, height}
-//   baxis: {maxTickWidth, offsetTop, width, height}
-// }}
-export const axesDimensions = signal({});
-
 export default function Axes(
 {
-  plotId, title, x, y, width, height, xLabel, yLabel,
+  plotId, title, x, y, xLabel, yLabel,
   xScale, yScale, Grid,
   titlePaddingBottom=5,
   axisConfigs, children,
   ...props
 }) {
-  if (!plotId) {
-    throw new Error("Please pass a plotId prop to Axes!");
-  }
+  const [_plotId] = useState(plotId ? plotId : generateRandomPlotId());
 
-  const titleRef = useRef()
-  const [lAxisRefCurrent, setLAxisRefCurrent] = useState()
-  const vizRef = useRef()
+  const { signals, setSignals } = useContext(RD3Context);
+
+  const titleRef = useRef();
+  const [lAxisRefCurrent, setLAxisRefCurrent] = useState();
+  const [bAxisRefCurrent, setBAxisRefCurrent] = useState();
+  const vizRef = useRef();
 
   // Title Text width & height
-  const [titleTextAreaHeight, setTitleTextAreaHeight] = useState(0)
-  const [titleTextWidth, setTitleTextWidth] = useState(0)
-  const [titleTextHeight, setTitleTextHeight] = useState(0)
+  const [titleTextAreaHeight, setTitleTextAreaHeight] = useState(0);
+  const [titleTextWidth, setTitleTextWidth] = useState(0);
+  const [titleTextHeight, setTitleTextHeight] = useState(0);
 
   const [lAxisMaxTickWidth, setLAxisMaxTickWidth] = useState(0);
-  const [lAxisOffsetTop, setLAxisOffsetTop] = useState(height + titleTextHeight);
+  const [lAxisOffsetTop, setLAxisOffsetTop] = useState(yScale.range()[0] + titleTextHeight);
   const [lAxisWidth, setLAxisWidth] = useState(0);
+  const [lAxisHeight, setLAxisHeight] = useState(0);
+  const [bAxisWidth, setBAxisWidth] = useState(0);
+  const [bAxisHeight, setBAxisHeight] = useState(0);
 
   const [innerAxisConfigs, setInnerAxisConfigs] = useState([]);
 
@@ -94,17 +83,18 @@ export default function Axes(
           scale: yScale,
           className: "axis",
           label: yLabel,
-          ...config, // This overwrites the default configurations
           afterDrawn: (ref, maxTickWidth, offsetTop) => {
             setLAxisRefCurrent(ref.current);
             setLAxisMaxTickWidth(maxTickWidth);
             setLAxisOffsetTop(offsetTop);
-          }
+          },
+          ...config, // This overwrites the default configurations
         };
       } else if (config.type === "Bottom") {
+        // console.log("set y to " + yScale.range()[0] + " + " + titleTextAreaHeight + " + " + lAxisOffsetTop);
         return {
           x: lAxisMaxTickWidth,
-          y: height + titleTextAreaHeight - lAxisOffsetTop,
+          y: yScale.range()[0] + titleTextAreaHeight - lAxisOffsetTop,
           scale: xScale,
           className: "axis",
           label: xLabel,
@@ -112,6 +102,9 @@ export default function Axes(
           textRotate: -30,
           textX: -10,
           textY: 0,
+          afterDrawn: (ref, maxTickWidth, offsetTop) => {
+            setBAxisRefCurrent(ref.current);
+          },
           ...config, // This overwrites the default configurations
         };
       }
@@ -139,9 +132,27 @@ export default function Axes(
       setTitleTextAreaHeight(titleBBox.height + titlePaddingBottom);
     }
     if (lAxisRefCurrent) {
-      setLAxisWidth(lAxisRefCurrent.getBBox().width);
+      const lAxisDim = lAxisRefCurrent.getBBox();
+      setLAxisWidth(lAxisDim.width);
+      setLAxisHeight(lAxisDim.height);
     }
-  }, [titlePaddingBottom, lAxisRefCurrent, innerAxisConfigs]);
+    if (bAxisRefCurrent) {
+      const bAxisDim = bAxisRefCurrent.getBBox();
+      setBAxisHeight(bAxisDim.height);
+      setBAxisWidth(bAxisDim.width);
+    }
+    // Push the dimensions to the context
+    setSignals({
+      ...signals,
+      [_plotId + '-lAxisMaxTickWidth']: lAxisMaxTickWidth,
+      [_plotId + '-lAxisWidth']: lAxisWidth,
+      [_plotId + '-lAxisHeight']: lAxisHeight,
+      [_plotId + '-titleTextAreaHeight']: titleTextAreaHeight,
+      [_plotId + '-lAxisOffsetTop']: lAxisOffsetTop,
+      [_plotId + '-bAxisWidth']: bAxisWidth,
+      [_plotId + '-bAxisHeight']: bAxisHeight
+    });
+  }, [titlePaddingBottom, lAxisRefCurrent, innerAxisConfigs, bAxisRefCurrent]);
 
   const [gridObj, setGridObj] = useState();
   useEffect(() => {
@@ -187,7 +198,7 @@ export default function Axes(
     <g transform={`translate(${x}, ${y})`}>
       {title &&
         <TitleText ref={titleRef} className="title"
-          x={lAxisWidth + Math.max(width/2, titleTextWidth/2)}
+          x={lAxisWidth + Math.max(xScale.range()[1]/2, titleTextWidth/2)}
           y={titleTextHeight}>
           {title}
         </TitleText>

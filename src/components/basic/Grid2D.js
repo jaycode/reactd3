@@ -13,6 +13,8 @@ const Grid2D = ({ xScale, yScale, xNTicks=10, yNTicks=10, height, width, axis })
 
   useEffect(() => {
     const grid = d3.select(ref.current);
+    grid.selectAll("line").remove();
+
     if (xScale && (!axis || axis === 'x')) {
       const ticks = xScale.ticks(xNTicks);
       const update = grid

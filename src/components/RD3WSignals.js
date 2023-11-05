@@ -11,8 +11,6 @@ export default function RD3({ children, data }) {
   const addSignal = (key, initialValue) => {
     if (!signals.value[key]) {
       signals.value[key] = initialValue;
-      console.log("After updating signal, signals is:");
-      console.log(signals);
     }
   };
 
