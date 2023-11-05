@@ -25,6 +25,7 @@ function App() {
     <div>
       <svg width={width+50} height={height+50}>
         <Scatterplot
+          plotId="scatterplot1"
           data={data}
           xVar="0"
           yVar="1"
@@ -49,6 +50,7 @@ function App() {
       </svg>
       <svg width={width+50} height={height+50}>
         <Scatterplot
+          plotId="scatterplot2"
           data={data}
           xVar="0"
           yVar="1"
@@ -74,6 +76,7 @@ function App() {
       </svg>
       <svg width={width+400} height={height+50}>
         <Scatterplot
+          plotId="scatterplot3"
           data={data}
           xVar="0"
           yVar="1"
@@ -90,10 +93,14 @@ function App() {
           )
         }
         </Scatterplot>
-        <Legend />
+        <Legend
+          plotId="scatterplot3"
+          x={width + 60}
+        />
       </svg>
     </div>
   );
 }
+
 
 export default App;

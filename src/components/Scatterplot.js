@@ -1,15 +1,12 @@
-import React from 'react';
+import React, { forwardRef, useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 import Axes from './basic/Axes';
+import { effect, signal } from "@preact/signals-react";
+import { scales } from './basic/scales';
+import { generateRandomPlotId } from './basic/helpers';
+import { axesDimensions } from './basic/Axes';
 
-function Scatterplot({data, xVar, yVar, zVar,
-colorScheme = d3.schemeCategory10,
-s=3, width, height, children, ...props}) {
-  const xMin = d3.min(data, d => d[xVar]);
-  const xMax = d3.max(data, d => d[xVar]);
-  const yMin = d3.min(data, d => d[yVar]);
-  const yMax = d3.max(data, d => d[yVar]);
-
+export function prepareScales(width, height, xMin, xMax, yMin, yMax, colorScheme) {
   const xScale = d3
     .scaleLinear()
     .domain([xMin, xMax])
@@ -22,16 +19,31 @@ s=3, width, height, children, ...props}) {
 
   // Create color scale based on zVar and colorMap
   const colorScale = d3.scaleOrdinal(colorScheme);
+  return {xScale, yScale, colorScale};
+}
 
-  // const [xScale, setXScale] = useState(() => defaultXScale);
-  // const [yScale, setYScale] = useState(() => defaultYScale);
-  // console.log(typeof children)
+const Scatterplot = forwardRef(({plotId, data, xVar, yVar, zVar,
+colorScheme = d3.schemeCategory10,
+s=3, width, height, children, ...props}, ref) => {
+  if (!plotId) {
+    throw new Error("Please pass a plotId prop to Scatterplot!");
+  }
+
+  const xMin = d3.min(data, d => d[xVar]);
+  const xMax = d3.max(data, d => d[xVar]);
+  const yMin = d3.min(data, d => d[yVar]);
+  const yMax = d3.max(data, d => d[yVar]);
+
+  effect(() => {
+    scales.value[plotId] = prepareScales(width, height, xMin, xMax, yMin, yMax, colorScheme);
+  });
 
   return (
-    <>
+    <g>
       <Axes
-        xScale={xScale}
-        yScale={yScale}
+        plotId={plotId+"-axes-"+generateRandomPlotId()}
+        xScale={scales.value[plotId].xScale}
+        yScale={scales.value[plotId].yScale}
         width={width}
         height={height}
         axisConfigs={
@@ -48,13 +60,16 @@ s=3, width, height, children, ...props}) {
         }
         {...props}>
           {
-            typeof children === 'function'
-            ? children({xScale, yScale, colorScale})
+            (typeof children === 'function')
+            ? children({
+              'xScale': scales.value[plotId].xScale,
+              'yScale': scales.value[plotId].yScale,
+              'colorScale': scales.value[plotId].colorScale})
             : children
           }
       </Axes>
-    </>
+    </g>
   )
-}
+});
 
 export default Scatterplot;

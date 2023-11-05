@@ -7,6 +7,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Axis from './Axis';
 import styled from 'styled-components';
+import { signal, effect } from '@preact/signals-react';
+import { generateRandomPlotId } from './helpers';
 
 const TitleText = styled.text`
   color: #212529;
@@ -16,14 +18,32 @@ const TitleText = styled.text`
   font-weight: bold;
 `;
 
+export const lAxisRefCurrent = signal();
+export const titleTextAreaHeight = signal();
+export const titleTextWidth = signal();
+export const lAxisMaxTickWidth = signal();
+export const lAxisOffsetTop = signal();
+
+// {plotId: {
+//   title: {width, height}
+//   laxis: {maxTickWidth, offsetTop, width, height}
+//   raxis: {maxTickWidth, offsetTop, width, height}
+//   taxis: {maxTickWidth, offsetTop, width, height}
+//   baxis: {maxTickWidth, offsetTop, width, height}
+// }}
+export const axesDimensions = signal({});
+
 export default function Axes(
 {
-  title, x, y, width, height, xLabel, yLabel,
+  plotId, title, x, y, width, height, xLabel, yLabel,
   xScale, yScale, Grid,
   titlePaddingBottom=5,
   axisConfigs, children,
   ...props
 }) {
+  if (!plotId) {
+    throw new Error("Please pass a plotId prop to Axes!");
+  }
 
   const titleRef = useRef()
   const [lAxisRefCurrent, setLAxisRefCurrent] = useState()
